@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AdventOfCode.Common
 {
@@ -8,6 +9,11 @@ namespace AdventOfCode.Common
         {
             key = tuple.Key;
             value = tuple.Value;
+        }
+
+        public static IEnumerable<(T, int)> WithIndex<T>(this IEnumerable<T> enumerable)
+        {
+            return enumerable.Select((value, index) => (value, index));
         }
     }
 }
