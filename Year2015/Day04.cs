@@ -148,22 +148,22 @@ namespace AdventOfCode.Year2015
             stopwatch.Start();
             string result = string.Empty;
 
-            // using (var md5 = new MD5CryptoServiceProvider())
-            // {
-            //     for (int i = 0; i < int.MaxValue; i += 1)
-            //     {
-            //         var inputWithSuffix = Input + i;
-            //         var md5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
-            //         var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
-            //         var allZeroes = md5String.All(_ => '0'.Equals(_));
-            //         if (allZeroes)
-            //         {
-            //             result = i.ToString();
-            //             break;
-            //         }
-            //     }
-            // }
-            // //Fastest 2,8970991 seconds
+            using (var md5 = new MD5CryptoServiceProvider())
+            {
+                for (int i = 0; i < int.MaxValue; i += 1)
+                {
+                    var inputWithSuffix = Input + i;
+                    var md5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
+                    var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
+                    var allZeroes = md5String.All(_ => '0'.Equals(_));
+                    if (allZeroes)
+                    {
+                        result = i.ToString();
+                        break;
+                    }
+                }
+            }
+            //Fastest 2,8970991 seconds
 
             // var md5Array = new MD5CryptoServiceProvider[Environment.ProcessorCount];
             // for (int i = 0; i < Environment.ProcessorCount; i++)
