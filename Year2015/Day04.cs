@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Data;
 using System.Threading;
 using System.Text;
@@ -44,48 +46,18 @@ namespace AdventOfCode.Year2015
 
         public string SolvePartOne()
         {
-            // result = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes("pqrstuv1048970")));
-            // string result = string.Empty;
-            // using (var md5 = MD5.Create())
-            // {
-
-            //     Console.WriteLine("abcdef609043:" + string.Join("", md5.ComputeHash(Encoding.UTF8.GetBytes("abcdef609043")).Take(3).Select(_ => _.ToString("x2"))));
-            //     Console.WriteLine("pqrstuv1048970:" + string.Join("", md5.ComputeHash(Encoding.UTF8.GetBytes("pqrstuv1048970")).Take(3).Select(_ => _.ToString("x2"))));
-            //     for (int i = 0; i < int.MaxValue; i++)
-            //     {
-            //         var inputWithSuffix = Input + i;
-            //         var md5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
-            //         var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
-            //         var allZeroes = md5String.Take(5).All(_ => '0'.Equals(_));
-            //         Console.WriteLine($"{inputWithSuffix}: [{md5String}] allZeroes: {allZeroes}");
-            //         if (allZeroes)
-            //         {
-            //             result = i.ToString();
-            //             break;
-            //         }
-            //     }
-            // }
-
-            // return result;
-            return "117946";
-        }
-
-        public string SolvePartTwo()
-        {
-            // result = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes("pqrstuv1048970")));
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             string result = string.Empty;
-            using (var md5 = MD5.Create())
-            {
 
-                Console.WriteLine("abcdef609043:" + string.Join("", md5.ComputeHash(Encoding.UTF8.GetBytes("abcdef609043")).Take(3).Select(_ => _.ToString("x2"))));
-                Console.WriteLine("pqrstuv1048970:" + string.Join("", md5.ComputeHash(Encoding.UTF8.GetBytes("pqrstuv1048970")).Take(3).Select(_ => _.ToString("x2"))));
-                for (int i = 0; i < int.MaxValue; i++)
+            using (var md5 = new MD5CryptoServiceProvider())
+            {
+                for (int i = 0; i < int.MaxValue; i += 1)
                 {
                     var inputWithSuffix = Input + i;
                     var md5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
                     var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
-                    var allZeroes = md5String.All(_ => '0'.Equals(_));
-                    Console.WriteLine($"{inputWithSuffix}: [{md5String}] allZeroes: {allZeroes}");
+                    var allZeroes = md5String.Take(5).All(_ => '0'.Equals(_));
                     if (allZeroes)
                     {
                         result = i.ToString();
@@ -93,33 +65,176 @@ namespace AdventOfCode.Year2015
                     }
                 }
             }
+            //Fastest by just a fraction 0,1335241 seconds
 
+
+            // var md5Array = new MD5CryptoServiceProvider[Environment.ProcessorCount];
+            // for (int i = 0; i < Environment.ProcessorCount; i++)
+            // {
+            //     md5Array[i] = new MD5CryptoServiceProvider();
+            // }
+            //
+            // for (int i = 0; i < int.MaxValue; i += Environment.ProcessorCount)
+            // {
+            //     var forResult = Parallel.For(i, i + Environment.ProcessorCount, (index, loopState) =>
+            //     {
+            //         var inputWithSuffix = Input + index;
+            //         var md5Bytes = md5Array[index % Environment.ProcessorCount].ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
+            //         var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
+            //         var allZeroes = md5String.Take(5).All(_ => '0'.Equals(_));
+            //         if (allZeroes)
+            //         {
+            //             loopState.Break();
+            //             return;
+            //         }
+            //     });
+            //
+            //     if (!forResult.IsCompleted)
+            //     {
+            //         result = forResult.LowestBreakIteration.ToString();
+            //         break;
+            //     }
+            // }
+            //
+            // for (int i = 0; i < Environment.ProcessorCount; i++)
+            // {
+            //     md5Array[i].Dispose();
+            // }
+            // Almost there 0,1473921 seconds
+
+
+
+            // var md5Array = new MD5CryptoServiceProvider[Environment.ProcessorCount];
+            // for (int i = 0; i < Environment.ProcessorCount; i++)
+            // {
+            //     md5Array[i] = new MD5CryptoServiceProvider();
+            // }
+            //
+            // var md5Concurrent = new ConcurrentQueue<MD5CryptoServiceProvider>(md5Array);
+            // var forResult2 = Parallel.For(0, int.MaxValue, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (index, loopState) =>
+            // {
+            //     var inputWithSuffix = Input + index;
+            //     if (md5Concurrent.TryDequeue(out MD5CryptoServiceProvider md5))
+            //     {
+            //         var md5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
+            //         md5Concurrent.Enqueue(md5);
+            //         var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
+            //         var allZeroes = md5String.Take(5).All(_ => '0'.Equals(_));
+            //         if (allZeroes)
+            //         {
+            //             loopState.Break();
+            //             return;
+            //         }
+            //     }
+            // });
+            //
+            // if (!forResult2.IsCompleted)
+            //     result = forResult2.LowestBreakIteration.ToString();
+            //
+            // for (int i = 0; i < Environment.ProcessorCount; i++)
+            // {
+            //     md5Array[i].Dispose();
+            // }
+            // Too slow 0,3927178 seconds
+
+            stopwatch.Stop();
+            Console.WriteLine($"[StopWatch Part One] Time elapsed to calculate: '{stopwatch.Elapsed.TotalSeconds} seconds'.");
             return result;
         }
 
-        private void ParallelForAction(int index, ParallelLoopState state)
+        public string SolvePartTwo()
         {
-            if (CheckMd5FiveZeroes(index))
-            {
-                state.Break();
-            }
-        }
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            string result = string.Empty;
 
-        private bool CheckMd5FiveZeroes(int numberSuffix)
-        {
-            var inputWithSuffix = Input + numberSuffix;
-            byte[] md5Bytes;
+            // using (var md5 = new MD5CryptoServiceProvider())
+            // {
+            //     for (int i = 0; i < int.MaxValue; i += 1)
+            //     {
+            //         var inputWithSuffix = Input + i;
+            //         var md5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
+            //         var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
+            //         var allZeroes = md5String.All(_ => '0'.Equals(_));
+            //         if (allZeroes)
+            //         {
+            //             result = i.ToString();
+            //             break;
+            //         }
+            //     }
+            // }
+            // //Fastest 2,8970991 seconds
 
-            using (var md5 = MD5.Create())
-            {
-                md5Bytes = md5.ComputeHash(Encoding.ASCII.GetBytes(inputWithSuffix));
-            }
+            // var md5Array = new MD5CryptoServiceProvider[Environment.ProcessorCount];
+            // for (int i = 0; i < Environment.ProcessorCount; i++)
+            // {
+            //     md5Array[i] = new MD5CryptoServiceProvider();
+            // }
 
-            // We only need the first 3 bytes as string to check the first five zeroes
-            var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
-            var allZeroes = md5String.Take(5).All(_ => 0.Equals(_));
-            Console.WriteLine($"{inputWithSuffix}: [{md5String}] allZeroes: {allZeroes}");
-            return allZeroes;
+            // for (int i = 0; i < int.MaxValue; i += Environment.ProcessorCount)
+            // {
+            //     var forResult = Parallel.For(i, i + Environment.ProcessorCount, (index, loopState) =>
+            //     {
+            //         var inputWithSuffix = Input + index;
+            //         var md5Bytes = md5Array[index % Environment.ProcessorCount].ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
+            //         var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
+            //         var allZeroes = md5String.All(_ => '0'.Equals(_));
+            //         if (allZeroes)
+            //         {
+            //             loopState.Break();
+            //             return;
+            //         }
+            //     });
+
+            //     if (!forResult.IsCompleted)
+            //     {
+            //         result = forResult.LowestBreakIteration.ToString();
+            //         break;
+            //     }
+            // }
+
+            // for (int i = 0; i < Environment.ProcessorCount; i++)
+            // {
+            //     md5Array[i].Dispose();
+            // }
+            // // Not so fast 3,4635795 seconds
+
+            // var md5Array = new MD5CryptoServiceProvider[Environment.ProcessorCount];
+            // for (int i = 0; i < Environment.ProcessorCount; i++)
+            // {
+            //     md5Array[i] = new MD5CryptoServiceProvider();
+            // }
+
+            // var md5Concurrent = new ConcurrentQueue<MD5CryptoServiceProvider>(md5Array);
+            // var forResult2 = Parallel.For(0, int.MaxValue, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (index, loopState) =>
+            // {
+            //     var inputWithSuffix = Input + index;
+            //     if (md5Concurrent.TryDequeue(out MD5CryptoServiceProvider md5))
+            //     {
+            //         var md5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputWithSuffix));
+            //         md5Concurrent.Enqueue(md5);
+            //         var md5String = string.Join("", md5Bytes.Take(3).Select(_ => _.ToString("x2")));
+            //         var allZeroes = md5String.All(_ => '0'.Equals(_));
+            //         if (allZeroes)
+            //         {
+            //             loopState.Break();
+            //             return;
+            //         }
+            //     }
+            // });
+
+            // if (!forResult2.IsCompleted)
+            //     result = forResult2.LowestBreakIteration.ToString();
+
+            // for (int i = 0; i < Environment.ProcessorCount; i++)
+            // {
+            //     md5Array[i].Dispose();
+            // }
+            // // Too slow 8,6130016 seconds
+
+            stopwatch.Stop();
+            Console.WriteLine($"[StopWatch Part Two] Time elapsed to calculate: '{stopwatch.Elapsed.TotalSeconds} seconds'.");
+            return result;
         }
     }
 }
